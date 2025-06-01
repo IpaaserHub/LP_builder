@@ -1,0 +1,121 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# LP Builder 開発ルール
+
+## プロジェクト概要
+このプロジェクトはAIエージェントを活用してランディングページを自動生成するWebサービス「LP Builder」です。PRDの仕様に従って開発を進めてください。
+
+参考資料: [PRD](mdc:PRD/prd.md)
+
+## 技術スタック遵守
+
+### 必須技術スタック
+- **フレームワーク**: Next.js 15を使用
+- **言語**: TypeScript必須
+- **スタイリング**: Tailwind CSS
+- **データベース**: Supabase
+- **認証**: Clerk
+- **AI SDK**: Vercel AI SDK
+- **UIライブラリ**: shadcn/ui
+- **状態管理**: Zustand
+- **パッケージマネージャー**: pnpm（必須）
+
+### 禁止事項
+- npm、yarnの使用禁止（必ずpnpmを使用）
+- 他のUIライブラリの使用禁止（shadcn/ui以外）
+- 独自CSS作成の最小化（Tailwind CSSを優先）
+
+## ファイル構造規則
+
+### ディレクトリ構造
+PRDで定義されたファイル構造に厳密に従ってください：
+
+```
+src/
+├── app/                    # Next.js App Router
+├── components/            # コンポーネント
+│   ├── ui/               # shadcn/ui components
+│   ├── layout/           # レイアウトコンポーネント
+│   ├── forms/            # フォームコンポーネント
+│   ├── editor/           # LPエディターコンポーネント
+│   ├── preview/          # プレビューコンポーネント
+│   └── analytics/        # アナリティクスコンポーネント
+├── lib/                   # ライブラリ設定
+├── hooks/                # カスタムReactフック
+├── store/                # Zustand状態管理
+├── types/                # TypeScript型定義
+└── utils/                # ヘルパー関数
+```
+
+### ファイル命名規則
+- コンポーネント: PascalCase (例: `ProjectCard.tsx`)
+- フック: camelCase + use接頭辞 (例: `useProjectData.ts`)
+- ユーティリティ: camelCase (例: `formatDate.ts`)
+- 型定義: PascalCase + Type接尾辞 (例: `ProjectType.ts`)
+
+## コーディング規則
+
+### TypeScript
+- 全てのファイルでTypeScriptを使用
+- `any`型の使用禁止
+- 適切な型定義を`src/types/`に配置
+- Zod を使用したバリデーションスキーマを`src/lib/validations.ts`に定義
+
+### React
+- 関数コンポーネントのみ使用（クラスコンポーネント禁止）
+- カスタムフックを`src/hooks/`に適切に分離
+- プロップスは必ずTypeScriptインターフェースで定義
+- forwardRefは必要な場合のみ使用
+
+### 状態管理
+- グローバル状態: Zustand (`src/store/`)
+- ローカル状態: useState/useReducer
+- サーバー状態: TanStack Query（必要に応じて）
+
+### スタイリング
+- Tailwind CSSクラスを優先使用
+- カスタムCSSは最小限に抑制
+- レスポンシブデザイン必須（sm:, md:, lg:, xl: ブレークポイント）
+- shadcn/uiコンポーネントのカスタマイズはCSSVariablesを使用
+
+## API設計規則
+
+### ルーティング
+- App Routerの規則に従う
+- API routes: `src/app/api/`
+- 認証が必要なAPIには適切なミドルウェア設定
+
+### データベース
+- Supabaseクライアントは`src/lib/supabase.ts`に集約
+- RLS（Row Level Security）を適切に設定
+- 型安全なクエリ実装
+
+### 認証
+- Clerkの設定は`src/lib/auth.ts`に集約
+- ページレベル、APIレベルでの認証チェック実装
+- セッション管理の適切な実装
+
+## AI機能実装
+
+### Vercel AI SDK
+- AI関連の設定は`src/lib/ai.ts`に集約
+- プロンプトエンジニアリングの適切な実装
+- ストリーミング対応
+- エラーハンドリングの徹底
+
+### 生成コンテンツ
+- LP生成ロジックの分離
+- テンプレート管理システム
+- A/Bテスト機能の考慮
+
+## デプロイメント
+
+### Vercel設定
+- 環境変数の適切な設定
+- ビルド最適化
+- プレビューデプロイの活用
+
+この開発ルールに従って、品質の高いLP Builderアプリケーションを構築してください。
