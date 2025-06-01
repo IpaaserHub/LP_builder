@@ -1,0 +1,217 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Git Pull Request ワークフロー
+
+## ブランチ戦略
+
+### 必須ルール: ブランチ名作成
+**すべての作業において、必ずブランチを作成してから作業を開始する**
+
+### ブランチ命名規則
+Linearの`git-branch-name`機能を使用して自動生成されるブランチ名を使用します。
+
+#### Linear が生成するブランチ名形式:
+```
+[username]/[task-id]-[task-title-slug]
+```
+
+#### 例:
+```bash
+username/ipa-123-user-authentication-feature
+username/ipa-124-fix-login-validation-error
+username/ipa-125-refactor-api-client-structure
+username/ipa-126-update-readme-setup-guide
+```
+
+## ブランチ作成フロー
+
+### 1. 作業開始前の必須チェック
+```bash
+# 1. メインブランチに移動
+git checkout main
+
+# 2. 最新の変更を取得
+git pull origin main
+```
+
+### 2. Linear の git-branch-name 機能を使用
+```bash
+# 3. Linear からブランチ名を取得してブランチ作成
+# Linear タスクページの右側メニューから "Copy git branch name" をクリック
+# または Linear CLI を使用:
+
+# Linear CLI でブランチ名を取得
+linear issue IPA-XXX --format=git-branch-name
+
+# 取得したブランチ名でブランチを作成
+git checkout -b [linear-generated-branch-name]
+```
+
+### 3. Linear タスクとの連携
+- **Linear の `git-branch-name` 機能を必ず使用**
+- Linear のタスクを "In Progress" に変更（State ID: `34dcd059-aea6-41ff-adfe-d9353bc8630e`）
+- ブランチ名はLinearが自動生成したものを使用することで一貫性を保つ
+
+### 4. Linear UI での操作手順
+1. Linear でタスクを開く
+2. 右側のサイドバーで "Copy git branch name" をクリック
+3. 生成されたブランチ名をコピー
+4. ターミナルで `git checkout -b [コピーしたブランチ名]` を実行
+
+## コミットメッセージ規則
+
+### 形式
+```
+[type]: [Linear-ID] - Brief description
+
+Detailed description (optional)
+```
+
+### 例:
+```bash
+git commit -m "feat: IPA-123 - Add user authentication flow
+
+- Implement login/logout functionality
+- Add JWT token management
+- Create protected route middleware"
+```
+
+### コミット Type:
+- `feat`: 新機能
+- `fix`: バグ修正
+- `refactor`: リファクタリング
+- `docs`: ドキュメント
+- `test`: テスト
+- `chore`: その他
+
+## Pull Request 作成規則
+
+### 1. PR作成前チェックリスト
+- [ ] ブランチが正しい命名規則に従っている
+- [ ] Linear タスクが "In Progress" 状態
+- [ ] 全てのテストがパス
+- [ ] Lint エラーがない
+- [ ] 不要なファイルがコミットされていない
+
+### 2. PR タイトル形式
+```
+[IPA-XXX] Brief description of changes
+```
+
+### 3. PR テンプレート
+```markdown
+## 概要
+<!-- 変更内容の簡潔な説明 -->
+
+## Linear タスク
+- Closes IPA-XXX
+- Related to IPA-YYY
+
+## 変更内容
+- [ ] 新機能の追加
+- [ ] バグの修正
+- [ ] リファクタリング
+- [ ] ドキュメントの更新
+
+## テスト
+- [ ] 新しいテストを追加
+- [ ] 既存のテストが全てパス
+- [ ] 手動テストを実施
+
+## 破壊的変更
+- [ ] あり（詳細を記載）
+- [ ] なし
+
+## スクリーンショット（UI変更がある場合）
+<!-- Before/After のスクリーンショット -->
+
+## レビュー観点
+<!-- レビュアーに特に見てほしいポイント -->
+```
+
+## レビュープロセス
+
+### 1. セルフレビュー（必須）
+- コード品質の確認
+- テストカバレッジの確認
+- パフォーマンスへの影響確認
+
+### 2. レビュー依頼
+- 適切なレビュアーをアサイン
+- 変更が大きい場合は事前に相談
+
+### 3. レビュー対応
+- フィードバックには24時間以内に対応
+- 変更後は再レビューを依頼
+
+## マージ後の処理
+
+### 1. ブランチクリーンアップ
+```bash
+# マージ後はブランチを削除
+# Linear生成のブランチ名を使用
+git branch -d [linear-generated-branch-name]
+git push origin --delete [linear-generated-branch-name]
+```
+
+### 2. Linear タスク更新
+- タスクの状態を "Done" に変更（State ID: `bba3ce00-3184-43c6-a748-7102e7576b0d`）
+- 完了コメントを追加
+
+### 3. 完了コメント例
+```markdown
+✅ PR マージ完了
+
+- **PR**: #XXX
+- **マージ先**: main
+- **実装内容**: [簡潔な説明]
+- **テスト**: PASS
+- **デプロイ**: [デプロイ状況]
+```
+
+## 緊急時の対応
+
+### Hotfix ブランチ
+```bash
+# 緊急修正の場合
+git checkout -b hotfix/IPA-XXX-critical-bug-fix
+```
+
+### 直接 main への修正禁止
+- **main ブランチへの直接コミットは禁止**
+- 緊急時でも必ずブランチを作成してPRを経由
+
+## 自動化設定
+
+### Git フック（推奨）
+```bash
+# pre-commit フックでブランチ名チェック
+#!/bin/sh
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+if [[ $current_branch == "main" ]]; then
+    echo "❌ メインブランチへの直接コミットは禁止されています"
+    echo "新しいブランチを作成してください:"
+    echo "1. Linear タスクから 'Copy git branch name' を使用"
+    echo "2. git checkout -b [linear-generated-branch-name]"
+    exit 1
+fi
+```
+
+## よくある間違いと対策
+
+### ❌ よくある間違い
+- メインブランチで直接作業
+- 手動でブランチ名を作成（Linear機能を使わない）
+- コミットメッセージが不明確
+- テスト未実施でのPR作成
+
+### ✅ 正しい手順
+1. **必ずブランチを作成**
+2. **Linear の git-branch-name 機能を使用**
+3. 明確なコミットメッセージ
+4. テスト実施後のPR作成
+
+この Git PR ワークフローに従って、品質の高いコード変更管理を実現してください。
