@@ -11,24 +11,19 @@ alwaysApply: true
 **すべての作業において、必ずブランチを作成してから作業を開始する**
 
 ### ブランチ命名規則
-```
-[type]/[linear-task-id]-[brief-description]
-```
+Linearの`git-branch-name`機能を使用して自動生成されるブランチ名を使用します。
 
-#### Type の種類:
-- `feature/`: 新機能開発
-- `fix/`: バグ修正
-- `refactor/`: リファクタリング
-- `docs/`: ドキュメント更新
-- `test/`: テスト追加・修正
-- `chore/`: 設定ファイル変更、依存関係更新など
+#### Linear が生成するブランチ名形式:
+```
+[username]/[task-id]-[task-title-slug]
+```
 
 #### 例:
 ```bash
-feature/IPA-123-user-authentication
-fix/IPA-124-login-validation-error
-refactor/IPA-125-api-client-structure
-docs/IPA-126-readme-setup-guide
+username/ipa-123-user-authentication-feature
+username/ipa-124-fix-login-validation-error
+username/ipa-125-refactor-api-client-structure
+username/ipa-126-update-readme-setup-guide
 ```
 
 ## ブランチ作成フロー
@@ -40,14 +35,31 @@ git checkout main
 
 # 2. 最新の変更を取得
 git pull origin main
-
-# 3. ブランチ作成（必須）
-git checkout -b feature/IPA-XXX-task-description
 ```
 
-### 2. Linear タスクとの連携
-- ブランチ名には必ずLinear Task ID（IPA-XXX）を含める
+### 2. Linear の git-branch-name 機能を使用
+```bash
+# 3. Linear からブランチ名を取得してブランチ作成
+# Linear タスクページの右側メニューから "Copy git branch name" をクリック
+# または Linear CLI を使用:
+
+# Linear CLI でブランチ名を取得
+linear issue IPA-XXX --format=git-branch-name
+
+# 取得したブランチ名でブランチを作成
+git checkout -b [linear-generated-branch-name]
+```
+
+### 3. Linear タスクとの連携
+- **Linear の `git-branch-name` 機能を必ず使用**
 - Linear のタスクを "In Progress" に変更（State ID: `34dcd059-aea6-41ff-adfe-d9353bc8630e`）
+- ブランチ名はLinearが自動生成したものを使用することで一貫性を保つ
+
+### 4. Linear UI での操作手順
+1. Linear でタスクを開く
+2. 右側のサイドバーで "Copy git branch name" をクリック
+3. 生成されたブランチ名をコピー
+4. ターミナルで `git checkout -b [コピーしたブランチ名]` を実行
 
 ## コミットメッセージ規則
 
@@ -140,8 +152,9 @@ git commit -m "feat: IPA-123 - Add user authentication flow
 ### 1. ブランチクリーンアップ
 ```bash
 # マージ後はブランチを削除
-git branch -d feature/IPA-XXX-task-description
-git push origin --delete feature/IPA-XXX-task-description
+# Linear生成のブランチ名を使用
+git branch -d [linear-generated-branch-name]
+git push origin --delete [linear-generated-branch-name]
 ```
 
 ### 2. Linear タスク更新
@@ -180,7 +193,9 @@ git checkout -b hotfix/IPA-XXX-critical-bug-fix
 current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 if [[ $current_branch == "main" ]]; then
     echo "❌ メインブランチへの直接コミットは禁止されています"
-    echo "新しいブランチを作成してください: git checkout -b feature/IPA-XXX-description"
+    echo "新しいブランチを作成してください:"
+    echo "1. Linear タスクから 'Copy git branch name' を使用"
+    echo "2. git checkout -b [linear-generated-branch-name]"
     exit 1
 fi
 ```
@@ -189,13 +204,13 @@ fi
 
 ### ❌ よくある間違い
 - メインブランチで直接作業
-- ブランチ名にタスクIDが含まれていない
+- 手動でブランチ名を作成（Linear機能を使わない）
 - コミットメッセージが不明確
 - テスト未実施でのPR作成
 
 ### ✅ 正しい手順
 1. **必ずブランチを作成**
-2. タスクIDを含む適切な命名
+2. **Linear の git-branch-name 機能を使用**
 3. 明確なコミットメッセージ
 4. テスト実施後のPR作成
 
